@@ -18,9 +18,11 @@
 
 #define NULL 0
 
-#define AMD_INDEX_IO_PORT   0xCD6
-#define AMD_DATA_IO_PORT    0xCD7
-#define AMD_SMBUS_BASE_REG  0x2C
+#define AMD_INDEX_IO_PORT        (0xCD6)
+#define AMD_DATA_IO_PORT         (0xCD7)
+#define AMD_SMBUS_BASE_REG       (0x0D)
+#define AMD_PM_DECODE_EN_LSB     (0x00)
+#define AMD_PM_SMBUS_ASF_IO_BASE (0x01)
 
 #define SMBHSTSTS smbusbase
 #define SMBHSTCNT smbusbase + 2
@@ -50,26 +52,22 @@ static char* convert_hex_to_char(unsigned hex_org) {
 static void ich5_get_smb(void)
 {
     unsigned long x;
-    int result;
+    int  result;
     result = pci_conf_read(0, smbdev, smbfun, 0x20, 2, &x);
     if (result == 0) smbusbase = (unsigned short) x & 0xFFFE;
 }
 
 static void sb800_get_smb(void)
 {
-      int lbyte, hbyte;
+    __outb(AMD_PM_SMBUS_ASF_IO_BASE, AMD_INDEX_IO_PORT);
+    __outb(AMD_SMBUS_BASE_REG, AMD_DATA_IO_PORT);
 
-        __outb(AMD_SMBUS_BASE_REG + 1, AMD_INDEX_IO_PORT);
-        lbyte = __inb(AMD_DATA_IO_PORT);
-        __outb(AMD_SMBUS_BASE_REG, AMD_INDEX_IO_PORT);
-        hbyte = __inb(AMD_DATA_IO_PORT);
+    __outb(AMD_PM_DECODE_EN_LSB, AMD_INDEX_IO_PORT);
+    __outb(__inb(AMD_DATA_IO_PORT | 0x10), AMD_DATA_IO_PORT);
 
-        smbusbase = lbyte;
-        smbusbase <<= 8;
-        smbusbase += hbyte;
-        smbusbase &= 0xFFE0;
-
-        if (smbusbase == 0xFFE0)    { smbusbase = 0; }
+    smbusbase = AMD_SMBUS_BASE_REG;
+    smbusbase <<= 8 ;
+    smbusbase &= 0xFF00;
 }
 
 static void piix4_get_smb(void)
