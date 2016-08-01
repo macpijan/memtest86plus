@@ -351,16 +351,18 @@ void get_spd_spec(void)
 
     if (index == -1)
     {
-    	// Unknown SMBUS Controller, exit
-			return;
+		// Unknown SMBUS Controller, exit
+		return;
     }
 
-    smbcontrollers[index].get_adr();
-		cprint(LINE_SPD-2, 0, "Memory SPD Informations");
-		cprint(LINE_SPD-1, 0, "--------------------------");
+	smbcontrollers[index].get_adr();
+	cprint(LINE_SPD-2, 0, "Memory SPD Information");
+	cprint(LINE_SPD-1, 0, "--------------------------");
 
-    for (j = 0; j < 8; j++) {
+	bool no_spd = TRUE;
+	for (j = 0; j < 8; j++) {
 			if (smbcontrollers[index].read_spd(j) == 0) {
+				if (no_spd) no_spd = FALSE;
 				curcol = 1;
 				if(spd_raw[2] == 0x0b){
 				  // We are here if DDR3 present
@@ -512,7 +514,9 @@ void get_spd_spec(void)
 				}
 			k++;
 			}
-    }
+			if (no_spd)
+				cprint(LINE_SPD+1, 0, "No spd detected");
+	}
 #endif
 }
 
