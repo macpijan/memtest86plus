@@ -13,7 +13,7 @@
 // using SPD_DISABLED macro
 // TODO: maybe this should be moved to config
 
-#define SPD_DISABLED
+//#define SPD_DISABLED
 
 void get_spd_spec(void);
 
